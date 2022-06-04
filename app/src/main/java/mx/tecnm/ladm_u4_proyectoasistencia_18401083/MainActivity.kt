@@ -21,6 +21,8 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.FileProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import mx.tecnm.ladm_u4_proyectoasistencia_18401083.Sockets.BClientSocket
 import mx.tecnm.ladm_u4_proyectoasistencia_18401083.Sockets.BServerSocket
@@ -35,6 +37,7 @@ import java.io.*
 import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), OnLocationListener {
     lateinit var binding: ActivityMainBinding
@@ -112,6 +115,18 @@ class MainActivity : AppCompatActivity(), OnLocationListener {
                 }*/
 
             }
+        binding.btnArchivo.setOnClickListener {
+            var infoLista = "noControl,hora\n"
+
+            (0..listaDatos.size-1).forEach {
+                var separador = listaDatos.get(it).split(",")
+                infoLista+=separador.get(0)+"," //noControl
+                infoLista+=separador.get(1)+"\n" //hora
+            }
+
+
+            guardarArchivo(infoLista)
+        }
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -192,6 +207,32 @@ class MainActivity : AppCompatActivity(), OnLocationListener {
             }*/
 
         }
+    }
+
+
+
+    private fun guardarArchivo(cadena:String) {
+        var nombreDocumento = "listaAlumnos_${fechaHoy}_${collectionHora}.cvs"
+        try {
+
+            val archivo = OutputStreamWriter(this.openFileOutput(nombreDocumento,0))
+            archivo.write(cadena)
+            archivo.flush()
+            archivo.close()
+            AlertDialog.Builder(this)
+                .setMessage("Se ha guardado correctamente el archivo").show()
+        }catch (e:Exception){
+            AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setMessage(e.message).show()
+        }
+        /*val sendIntent = Intent()
+        val file: File = File(this.getFilesDir(), nombreDocumento)
+        sendIntent.action = Intent.ACTION_SEND
+        sendIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
+            "sergioSerrano",file))
+        sendIntent.type = "text/csv"
+        startActivity(Intent.createChooser(sendIntent, "SHARE"))*/
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
