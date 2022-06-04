@@ -1,6 +1,7 @@
 package mx.tecnm.ladm_u4_proyectoasistencia_18401083
 
 import android.Manifest
+import android.R
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
@@ -19,6 +20,8 @@ import android.os.Message
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import com.google.firebase.firestore.FirebaseFirestore
 import mx.tecnm.ladm_u4_proyectoasistencia_18401083.Sockets.BClientSocket
 import mx.tecnm.ladm_u4_proyectoasistencia_18401083.Sockets.BServerSocket
 import mx.tecnm.ladm_u4_proyectoasistencia_18401083.Util.BluetoothStateCustom
@@ -60,10 +63,55 @@ class MainActivity : AppCompatActivity(), OnLocationListener {
     private val CHOOSER_FILE=112
     private val REQUEST_PERMESSIONS_LOC = 222
     private val REQUEST_PERMESSIONS_EXTERNAL = 222
+
+    val baseRemota = FirebaseFirestore.getInstance()
+    var listaId = ArrayList<String>()
+    var listaDatos = ArrayList<String>()
+    lateinit var idElegido:String
+    lateinit var fechaHoy:String
+    lateinit var collectionHora:String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        fechaHoy  = ""
+        val cal = GregorianCalendar.getInstance()
+        fechaHoy = cal.get(Calendar.DAY_OF_MONTH).toString() +"-"+
+        cal.get(Calendar.MONTH).toString() +"-"+
+        cal.get(Calendar.YEAR)
+        var tiempo = ""
+        if (cal.get(Calendar.AM_PM).equals(1)) tiempo = "PM"
+        else if (cal.get(Calendar.AM_PM).equals(0)) tiempo = "AM"
+        var hora = cal.get(Calendar.HOUR)
+        collectionHora = "${hora} ${tiempo} a ${hora+1} ${tiempo}"
+        baseRemota.collection("ListaAlumnos").document(fechaHoy).collection(collectionHora)
+            .addSnapshotListener { query, error ->
+
+                if (error !=null){
+                    //Si hubo error
+                    AlertDialog.Builder(this)
+                        .setMessage(error.message)
+                        .show()
+                    return@addSnapshotListener
+                }
+
+
+                listaId.clear()
+                listaDatos.clear()
+
+                for (documento in query!!){
+                    var cadena = "${documento.getString("noControl")},${documento.getString("hora")}"
+                    listaDatos.add(cadena)
+                    listaId.add(documento.id.toString())
+                }
+                binding.lvAsistencias.adapter = ArrayAdapter<String>(this,
+                    R.layout.simple_list_item_1, listaDatos)
+                /*binding.lvAsistencias.setOnItemClickListener { adapterView, view, pos, l ->
+                    dialogEliminaActualiza(pos)
+                }*/
+
+            }
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
@@ -145,6 +193,7 @@ class MainActivity : AppCompatActivity(), OnLocationListener {
 
         }
     }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode==REQUEST_PERMESSIONS_EXTERNAL){
@@ -267,10 +316,31 @@ class MainActivity : AppCompatActivity(), OnLocationListener {
                 val str = String(bytesRec,0,msg.arg1)
                 //Toast.makeText(applicationContext,"Bytes:"+msg.arg1,Toast.LENGTH_SHORT).show()
                 binding.tvMessage.text = str
+                agregarAsistencia(str)
             }
 
         }
         true
+    }
+
+    private fun agregarAsistencia(dato: String) {
+        val info = dato.split("\n")
+        val datos = hashMapOf(
+            "noControl" to info.get(0),
+            "hora" to info.get(1)
+        )
+        baseRemota.collection("ListaAlumnos").document(fechaHoy).collection(collectionHora)
+            .add(datos)
+            .addOnSuccessListener {
+                //Si se pudo
+                Toast.makeText(this,"Insertado correctamente en BD", Toast.LENGTH_LONG)
+                    .show()
+            }
+            .addOnFailureListener {
+                AlertDialog.Builder(this)
+                    .setMessage(it.message)
+                    .show()
+            }
     }
 
     inner class SendReceiveMsg(var bluetoothSocket: BluetoothSocket):Thread(){
