@@ -12,6 +12,7 @@ import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
@@ -212,27 +213,28 @@ class MainActivity : AppCompatActivity(), OnLocationListener {
 
 
     private fun guardarArchivo(cadena:String) {
-        var nombreDocumento = "listaAlumnos_${fechaHoy}_${collectionHora}.cvs"
+        var filename = "listaAlumnos_${fechaHoy}_${collectionHora}.cvs"
+        val archivo = OutputStreamWriter(this.openFileOutput(filename,MODE_PRIVATE))
         try {
 
-            val archivo = OutputStreamWriter(this.openFileOutput(nombreDocumento,0))
             archivo.write(cadena)
             archivo.flush()
             archivo.close()
-            AlertDialog.Builder(this)
-                .setMessage("Se ha guardado correctamente el archivo").show()
+            /*AlertDialog.Builder(this)
+                .setMessage("Se ha guardado correctamente el archivo").show()*/
+            val sendIntent = Intent(Intent.ACTION_SEND)
+            val file: File = File(this.getFilesDir(), "listaAlumnos_${fechaHoy}_${collectionHora}.cvs")
+            sendIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
+                "mx.tecnm.ladm_u4_proyectoasistencia_18401083.provider",file))
+            sendIntent.type = "text/csv"
+            startActivity(Intent.createChooser(sendIntent, "SHARE"))
         }catch (e:Exception){
             AlertDialog.Builder(this)
                 .setTitle("Error")
                 .setMessage(e.message).show()
         }
-        /*val sendIntent = Intent()
-        val file: File = File(this.getFilesDir(), nombreDocumento)
-        sendIntent.action = Intent.ACTION_SEND
-        sendIntent.putExtra(Intent.EXTRA_STREAM, FileProvider.getUriForFile(this,
-            "sergioSerrano",file))
-        sendIntent.type = "text/csv"
-        startActivity(Intent.createChooser(sendIntent, "SHARE"))*/
+
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

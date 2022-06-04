@@ -15,7 +15,18 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.LADM_U4_PROYECTOASISTENCIA_18401083">
+        android:theme="@style/Theme.LADM_U4_PROYECTOASISTENCIA_18401083"
+        android:authorities="mx.tecnm.ladm_u4_proyectoasistencia_18401083.provider">
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
