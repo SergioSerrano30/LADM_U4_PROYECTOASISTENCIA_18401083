@@ -1,13 +1,11 @@
 package mx.tecnm.ladm_u4_proyectoasistencia_18401083
 
-import android.Manifest
 import android.R
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +17,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import com.google.firebase.firestore.FirebaseFirestore
-import mx.tecnm.ladm_u4_proyectoasistencia_18401083.Sockets.BServerSocket
+import mx.tecnm.ladm_u4_proyectoasistencia_18401083.Servidor.Servidor
 import mx.tecnm.ladm_u4_proyectoasistencia_18401083.Util.BluetoothStateCustom
 import mx.tecnm.ladm_u4_proyectoasistencia_18401083.databinding.ActivityMainBinding
 import mx.tecnm.ladm_u4_proyectoasistencia_18401083.interfaces.OnHandlerMsg
@@ -114,7 +112,7 @@ class MainActivity : AppCompatActivity(){
         binding.apply {
 
             btnListen.setOnClickListener {
-                val bServerSocket = BServerSocket(bluetoothAdapter,uuid,object:OnHandlerMsg{
+                val bServerSocket = Servidor(bluetoothAdapter,uuid,object:OnHandlerMsg{
                     override fun onMsgGet(msg: Message) {
                         handler.sendMessage(msg)
                     }

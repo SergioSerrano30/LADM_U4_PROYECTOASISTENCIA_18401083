@@ -1,4 +1,4 @@
-package mx.tecnm.ladm_u4_proyectoasistencia_18401083.Sockets
+package mx.tecnm.ladm_u4_proyectoasistencia_18401083.Servidor
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothServerSocket
@@ -11,7 +11,7 @@ import mx.tecnm.ladm_u4_proyectoasistencia_18401083.interfaces.OnSocketReceive
 import java.io.IOException
 import java.util.*
 
-class BServerSocket(bluetoothAdapter: BluetoothAdapter, uuid: UUID, handlerM: OnHandlerMsg, onReceive: OnSocketReceive):Thread() {
+class Servidor(bluetoothAdapter: BluetoothAdapter, uuid: UUID, handlerM: OnHandlerMsg, onReceive: OnSocketReceive):Thread() {
 
     private lateinit var bluetoothServerSocket: BluetoothServerSocket
     private var onHandlerMsg = handlerM
